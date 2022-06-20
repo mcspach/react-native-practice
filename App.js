@@ -1,75 +1,69 @@
 import { useState } from 'react';
-import { StyleSheet, View, FlatList, Button } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View, ImageBackground, SafeAreaView } from "react-native";
+import { useFonts } from "expo-font";
+import AppLoading from 'expo-app-loading';
 
-import GoalItem from './components/GoalItem';
-import GoalInput from './components/GoalInput';
+import StartGameScreen from "./screens/StartGameScreen";
+import GameScreen from "./screens/GameScreen";
+import GameOverScreen from "./screens/GameOverScreen";
 
 export default function App() {
-  const [modalIsVisible, setModalIsVisible] = useState(false);
-  const [courseGoals, setCourseGoals] = useState([]);
+  const [userNumber, setUserNumber] = useState();
+  const [gameIsOver, setGameisOver] = useState(true);
+  const [roundsNumber, setRoundsNumber] = useState(0);
 
-  function startAddGoalHandler() {
-    setModalIsVisible(true);
+  const [fontsLoaded] = useFonts({
+    "open-sans": require("./assets/fonts/OpenSans-Regular.ttf"),
+    "open-sans-bold": require("./assets/fonts/OpenSans-Bold.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
   }
 
-  function endAddGoalHandler() {
-    setModalIsVisible(false);
+  function pickedNumberHandler(pickedNumber) {
+    setUserNumber(pickedNumber);
+    setGameisOver(false);
   }
 
-  function addGoalHandler(enteredGoalText) {
-    setCourseGoals((currentCourseGoals) => [
-      ...currentCourseGoals, {text: enteredGoalText, id: Math.random().toString()},
-      ]);
-      endAddGoalHandler();
-  };
+  let screen = <StartGameScreen onPickNumber={pickedNumberHandler} />;
 
-  function deleteGoalHandler(id) {
-    console.log(id, courseGoals);
-    setCourseGoals((currentCourseGoals) => {
-      return currentCourseGoals.filter((goal) => goal.id !== id);
-    });
+  if (userNumber) {
+    screen = (
+      <GameScreen userNumber={userNumber} roundsNumber={roundsNumber} onGameOver={gameOverHandler} />
+    );
+  }
+
+  if (gameIsOver && userNumber) {
+    screen = <GameOverScreen userNumber={userNumber} roundsNumber={roundsNumber} onStartNewGame={newGameHandler}/>;
+  }
+
+  function gameOverHandler() {
+    setGameisOver(true);
+  }
+
+  function newGameHandler() {
+    setUserNumber(null);
+    setRoundsNumber(0);
   }
 
   return (
-    <>
-      <StatusBar style='light' />
-      <View style={styles.pageContainer}>
-        <Button 
-        title='Add New Goal' 
-        color='#5e0acc' 
-        onPress={startAddGoalHandler}
-        />
-        <GoalInput onAddGoal={addGoalHandler} onCancel={endAddGoalHandler} visible={modalIsVisible} />
-        <View style={styles.goalsList}>
-          <FlatList 
-            data={courseGoals} 
-            renderItem={(itemData) => {
-              return <GoalItem text={itemData.item.text} id={itemData.item.id} onDeleteItem={deleteGoalHandler} />;
-            }}
-            keyExtractor={(item, index) => {
-              return item.id;
-            }}
-          />
-          </View>
-      </View>
-    </>
+    <ImageBackground
+      style={styles.mainScreen}
+      source={require("./assets/images/dice.jpeg")}
+      resizeMode="cover"
+      imageStyle={styles.backgroundImage}
+    >
+      <SafeAreaView style={styles.mainScreen}>{screen}</SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  pageContainer: {
+  mainScreen: {
     flex: 1,
-    paddingTop: 50,
-    paddingHorizontal: 12,
-    justifyContent: 'flex-start',
-    backgroundColor: '#1e085a'
   },
-  goalsList: {
-    flex: 5,
-    marginTop: 10,
+  backgroundImage: {
+    opacity: 0.25,
   },
-  goalsFlatList: {
-
-  }
 });
