@@ -29,7 +29,7 @@ function GameScreen({ roundsNumber, userNumber, onGameOver }) {
 
   useEffect(() => {
     if (currentGuess === userNumber) {
-      onGameOver(10);
+      onGameOver(guessRounds.length);
     }
   }, [currentGuess, userNumber, onGameOver]);
 
@@ -134,7 +134,6 @@ const styles = StyleSheet.create({
   },
   guessList: {
     flexDirection: 'row',
-    
   },
   lottie: {
     width: "100%",
